@@ -9,9 +9,11 @@ package com.loadBalancer.lb.entity;
 public class Server {
     private String host;
     private int port;
-    public Server(String host,int port){
+    private String healthCheckEndpoint;
+    public Server(String host,int port,String healthCheckEndpoint){
         this.host=host;
         this.port=port;
+        this.healthCheckEndpoint=healthCheckEndpoint;
     }
 
     public String getHost(){
@@ -24,6 +26,10 @@ public class Server {
 
     public String getUrl(){
         return "https://"+host+":"+port;
+    }
+
+    public String geHealthCheckUrl(){
+        return "https://"+host+":"+port+"/"+healthCheckEndpoint;
     }
 
 }

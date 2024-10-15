@@ -1,5 +1,5 @@
 [
-  {"host": "localhost1", "port": 8080},
-  {"host": "localhost2", "port": 8080},
-  {"host": "localhost3", "port": 8080}
+  {"host": "localhost1", "port": 8080,"healthCheckEndpoint": "actuator/health"},
+  {"host": "localhost2", "port": 8080,"healthCheckEndpoint": "actuator/health"},
+  {"host": "localhost3", "port": 8080,"healthCheckEndpoint": "actuator/health"}
 ]
