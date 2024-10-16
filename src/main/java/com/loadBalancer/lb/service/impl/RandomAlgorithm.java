@@ -5,7 +5,7 @@ import com.loadBalancer.lb.service.ServerService;
 
 import java.util.*;
 
-public class RandomServerSelectionServiceImpl implements ServerService {
+public class RandomAlgorithm implements ServerService {
     private final Random random = new Random();
 
 

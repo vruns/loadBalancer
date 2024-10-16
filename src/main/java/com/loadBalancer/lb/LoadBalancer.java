@@ -17,12 +17,12 @@ import java.util.*;
  */
 public class LoadBalancer {
     private List<Server> servers;
-    private ServerService serverSelection;
+    private ServerService algorithm;
     private int port;
 
     public LoadBalancer(int port, String configFilePath, ServerService serverSelection) throws IOException {
         this.port = port;
-        this.serverSelection = serverSelection;
+        this.algorithm = serverSelection;
         this.servers = loadServers(configFilePath);
     }
 
@@ -35,7 +35,12 @@ public class LoadBalancer {
      */
     public List<Server> loadServers(String configFilePath) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        return Arrays.asList(mapper.readValue(new File(configFilePath), Server[].class));
+        return new ArrayList<>(Arrays.asList(mapper.readValue(new File(configFilePath), Server[].class)));
+    }
+
+
+    public List<Server> getServers(){
+        return servers;
     }
 
 
@@ -60,8 +65,8 @@ public class LoadBalancer {
      * @implNote : change the scheduling algorithm type
      * @param newAlgo
      */
-    public void changeSelector(ServerService newAlgo) {
-        this.serverSelection = newAlgo;
+    public void changeAlgorithm(ServerService newAlgo) {
+        this.algorithm = newAlgo;
     }
 
 
@@ -76,7 +81,7 @@ public class LoadBalancer {
         while (true) {
             Socket clientSocket = serverSocket.accept();
             System.out.println("TCP Connection established with client :" +clientSocket.toString());
-            Server server= serverSelection.selectServer(servers);
+            Server server= algorithm.selectServer(servers);
             ClientSocketHandler clientSocketRequest = new ClientSocketHandler(clientSocket,server);
             Thread clientThread= new Thread(clientSocketRequest);
             clientThread.start();

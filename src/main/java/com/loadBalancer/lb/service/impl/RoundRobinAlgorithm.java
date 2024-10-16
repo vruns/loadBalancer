@@ -5,7 +5,7 @@ import com.loadBalancer.lb.service.ServerService;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class RoundRobinServerSelectionServiceImpl implements ServerService {
+public class RoundRobinAlgorithm implements ServerService {
     private AtomicInteger index = new AtomicInteger(0);
 
     /**
