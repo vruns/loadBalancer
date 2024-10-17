@@ -15,8 +15,8 @@ This project is a simple load balancer that distributes HTTP requests among a se
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/load-balancer.git
-   cd load-balancer
+   git clone https://github.com/vruns/loadBalancer.git
+   cd loadBalancer
 
 2. Install dependencies (Maven):
 
