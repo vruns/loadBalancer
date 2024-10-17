@@ -1,5 +1,4 @@
 [
   {"host": "localhost", "port": 8080,"healthCheckEndpoint": "actuator/health"},
-  {"host": "localhost", "port": 8080,"healthCheckEndpoint": "actuator/health"},
-  {"host": "localhost", "port": 8080,"healthCheckEndpoint": "actuator/health"}
+  {"host": "localhost", "port": 9200,"healthCheckEndpoint": "actuator/health"}
 ]

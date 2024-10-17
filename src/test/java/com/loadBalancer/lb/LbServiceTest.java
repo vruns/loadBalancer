@@ -3,8 +3,6 @@ package com.loadBalancer.lb;
 import com.loadBalancer.lb.entity.Server;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,72 +10,76 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 public class LbServiceTest {
-    @Mock
     private Socket mockClientSocket;
     private Socket mockBackendSocket;
+    private Server mockServer;
+    private InputStream mockClientInput;
+    private ByteArrayOutputStream mockClientOutput;
+    private InputStream mockBackendInput;
+    private ByteArrayOutputStream mockBackendOutput;
 
-    private Server mockBackendServer;
     @BeforeEach
-    public void setUp() throws IOException {
-        MockitoAnnotations.openMocks(this);
+    void setUp() throws IOException {
+        // Mock client socket and streams
+        mockClientSocket = mock(Socket.class);
+        mockClientOutput = new ByteArrayOutputStream();
+        mockClientInput = new ByteArrayInputStream("Client Request".getBytes());
 
-        // Initialize a mock backend server with dummy host and port
-        mockBackendServer = new Server("localhost", 8080, "actuator/health");
+        // Set up client input and output
+        when(mockClientSocket.getInputStream()).thenReturn(mockClientInput);
+        when(mockClientSocket.getOutputStream()).thenReturn(mockClientOutput);
 
-        mockBackendSocket= new Socket("localhost",8080);
+        // Mock backend socket
+        mockBackendSocket = mock(Socket.class);
+        mockBackendOutput = new ByteArrayOutputStream();
+        mockBackendInput = new ByteArrayInputStream("Backend Response".getBytes());
 
-        // Mock the input/output streams for client and backend sockets
-        when(mockClientSocket.getInputStream()).thenReturn(new ByteArrayInputStream("GET /test HTTP/1.1".getBytes()));
-        when(mockClientSocket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
+        // Mock backend input and output
+        when(mockBackendSocket.getInputStream()).thenReturn(mockBackendInput);
+        when(mockBackendSocket.getOutputStream()).thenReturn(mockBackendOutput);
+
+        // Mock server object with host and port
+        mockServer = new Server("localhost", 8080, "/health");
     }
 
     @Test
-    public void testClientToBackendCommunication() throws IOException {
-        // Create an instance of ClientSocketHandler with the mocked sockets
-        ClientSocketHandler clientSocketHandler = new ClientSocketHandler(mockClientSocket, mockBackendServer);
+    void testClientToBackendCommunication() throws IOException, InterruptedException {
+        // Create a handler with the mocked client socket and server
+        ClientSocketHandler handler = new ClientSocketHandler(mockClientSocket, mockServer);
 
-        // Run the socket handler logic in a thread (simulating concurrent handling)
-        Thread handlerThread = new Thread(clientSocketHandler);
-        handlerThread.start();
+        // Mock the behavior of establishing a connection with the backend server
+        try (Socket backendSocket = mockBackendSocket) {
+            // Replace the original connection with the mock backend socket
+            whenNew(Socket.class).withArguments("localhost", 8080).thenReturn(backendSocket);
+            Thread handlerThread = new Thread(handler);
+            handlerThread.start();
+            handlerThread.join(); // Wait for the handler to finish
 
-        // Ensure the thread finishes execution
-        try {
-            handlerThread.join();
-        } catch (InterruptedException e) {
-            fail("Thread interrupted: " + e.getMessage());
+            // Now, assert that the client output contains the expected backend response
+            assertEquals("Backend Response", mockClientOutput.toString());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        InputStream mockInputStream = new ByteArrayInputStream("Test Data 1234".getBytes());
-        when(mockClientSocket.getInputStream()).thenReturn(mockInputStream);
     }
 
     @Test
-    public void testBackendServerUnavailable() throws IOException {
-        // Create an instance with no backend server (simulate 503 response scenario)
-        ClientSocketHandler clientSocketHandler = new ClientSocketHandler(mockClientSocket, null);
+    void test503ResponseWhenNoServerAvailable() throws IOException, InterruptedException {
+        // Create a handler with a null server to trigger 503 response
+        ClientSocketHandler handler = new ClientSocketHandler(mockClientSocket, null);
 
-        // Run the socket handler logic in a thread
-        Thread handlerThread = new Thread(clientSocketHandler);
+        // Run the handler in a separate thread
+        Thread handlerThread = new Thread(handler);
         handlerThread.start();
+        handlerThread.join(); // Wait for the handler to finish
 
-        // Ensure the thread finishes execution
-        try {
-            handlerThread.join();
-        } catch (InterruptedException e) {
-            fail("Thread interrupted: " + e.getMessage());
-        }
-
-        // Verify that the correct response is sent to the client
-        ByteArrayOutputStream clientOutput = (ByteArrayOutputStream) mockClientSocket.getOutputStream();
-        String response = clientOutput.toString();
-
-        assertTrue(response.contains("503 Service Unavailable"));
+        // Check if the 503 response was sent to the client
+        String expectedResponse = "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\n\r\n";
+        assertEquals(expectedResponse, mockClientOutput.toString());
     }
 }

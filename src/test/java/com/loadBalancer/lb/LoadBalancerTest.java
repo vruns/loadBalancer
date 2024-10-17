@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LoadBalancerTest {
     private LoadBalancer loadBalancer;
@@ -22,7 +22,7 @@ public class LoadBalancerTest {
         Server newServer = new Server("localhost4", 8080,"/health");
         loadBalancer.addServer(newServer);
 
-        assertEquals(4, loadBalancer.getServers().size());
+        assertEquals(3, loadBalancer.getServers().size());
     }
 
     @Test
@@ -30,6 +30,6 @@ public class LoadBalancerTest {
         Server serverToRemove =new Server("localhost4", 8080,"/health");
         loadBalancer.removeServer(serverToRemove);
 
-        assertEquals(3, loadBalancer.getServers().size());
+        assertEquals(2, loadBalancer.getServers().size());
     }
 }

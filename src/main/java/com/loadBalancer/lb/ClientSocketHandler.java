@@ -15,7 +15,8 @@ public class ClientSocketHandler implements Runnable {
     private final Socket clientSocket;
     private final Server selectedServer;
 
-    public ClientSocketHandler(final Socket socket, final Server selectedServer) {
+
+    public ClientSocketHandler(Socket socket, Server selectedServer) {
         this.clientSocket = socket;
         this.selectedServer = selectedServer;
     }
@@ -80,5 +81,6 @@ public class ClientSocketHandler implements Runnable {
                 "Content-Length: 0\r\n\r\n";
         output.write(response.getBytes());
         output.flush();
+
     }
 }

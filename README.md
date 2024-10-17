@@ -29,4 +29,4 @@ This project is a simple load balancer that distributes HTTP requests among a se
 5. Run the load balancer:
 
     ```bash
-   mvn exec:java -Dexec.mainClass="loadbalancer.LbApplication"
+   java -jar target/lb-0.0.1-SNAPSHOT.jar
